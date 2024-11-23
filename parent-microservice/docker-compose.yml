@@ -1,0 +1,165 @@
+#--------------------------------------------
+#1. docker-compose -p comp3095-microservices-ecommerce -f docker-compose.yml up -d
+#   --This command will start the containers in detached made without rebuilding the images (if they exists)
+
+#2.docker-compose -p comp3095-microservices-ecommerce -f docker-compose.yml up -dm--build
+#     --This command force the rebuild of all images,even if they already exists before starting the containers
+#-------------------------------------------------------------------------------
+services:
+  api-gateway:
+    image: api-gateway
+    ports:
+      - "9000:9000"
+    build:
+      context: ./product-service
+      dockerfile: ./Dockerfile
+    container_name: api-gateway
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVICES_PRODUCT_URL: http://product-service:8085
+      SERVICES_ORDER_URL: http://order-service:8082
+      SERVICES_INVENTORY_URL: http://inventory-service:8083
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://localhost:8180/realms/spring-microservices-security-realm
+    depends_on:
+      - product-service
+      - order-service
+      - inventory-service
+    networks:
+      - spring
+
+
+  inventory-service:
+    image: inventory-service
+    ports:
+      - "8083:8083"
+    build:
+      context: ./product-service
+      dockerfile: ./Dockerfile
+    container_name: inventory-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_inventory:5432/inventory-service
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: password
+    depends_on:
+      - postgres_inventory
+    restart: always
+    networks:
+      - spring
+
+  order-service:
+    image: order-service
+    ports:
+      - "8082:8082"
+    build:
+      context: ./product-service
+      dockerfile: ./Dockerfile
+    container_name: order-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_order:5432/order-service
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: password
+    depends_on:
+      - postgres_order
+      - inventory-service
+    networks:
+      - spring
+
+  product-service:
+    image: product-service
+    ports:
+      - "8084:8084"
+    build:
+      context: ./product-service
+      dockerfile: ./Dockerfile
+    container_name: product-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      - mongodb
+    networks:
+      - spring
+
+  postgres_order:
+    image: postgres:latest
+    ports:
+      - "5433:5432"
+    container_name: postgres_order
+    environment:
+      - POSTGRES_DB=order-service
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_order_data:/var/lib/postgresql/data
+      - ./init/order/init.sql:/docker-entrypoint-initdb.d/order/init.sql
+    networks:
+      - spring
+
+  postgres_inventory:
+    image: postgres
+    ports:
+      - "5434:5432"
+    container_name: postgres_inventory
+    environment:
+      - POSTGRES_DB=inventory-service
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_inventory_data:/var/lib/postgresql/data/
+      - ./init/inventory/init.sql:/docker-entrypoint-initdb.d/inventory/init.sql
+    networks:
+      - spring
+
+  pgadmin:
+    image: dpage/pgadmin4
+    ports:
+      - "8888:80"
+    container_name: pgadmin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=user@domain.com
+      - PGADMIN_DEFAULT_PASSWORD=password
+      - PGADMIN_LISTEN_PORT=80
+    depends_on:
+      - postgres_order
+      - postgres_inventory
+    networks:
+      - spring
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27019:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    volumes:
+      - ./data/mongo/products:/data/db
+      - ./init/mongo/docker-entrypoint-initdb.d/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    container_name: mongodb
+    command: mongod --auth
+    networks:
+      - spring
+
+  mongo-express:
+    image: mongo-express
+    ports:
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=password
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+    container_name: mongo-express
+    depends_on:
+      - mongodb
+    networks:
+      - spring
+
+volumes:
+  postgres_order_data:
+  postgres_inventory_data:
+  mongodb_data:
+
+networks:
+  spring:
+    driver: bridge
