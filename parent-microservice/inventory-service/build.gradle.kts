@@ -28,6 +28,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-database-postgresql")
+    implementation("io.swagger.core.v3:swagger-annotations:2.2.12") // This is the required Swagger annotations
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0") // OpenAPI integration
+
     compileOnly("org.projectlombok:lombok")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     runtimeOnly("org.postgresql:postgresql")

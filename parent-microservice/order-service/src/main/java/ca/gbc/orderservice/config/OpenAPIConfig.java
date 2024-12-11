@@ -15,15 +15,14 @@ public class OpenAPIConfig {
     private String version;
 
     @Bean
-    public OpenAPI orderServiceAPI(){
+    public OpenAPI orderServiceAPI() {
         return new OpenAPI()
-                .info(new Info().title("{order Service API")
+                .info(new Info().title("Order Service API")  // Fix the typo here
                         .description("This is the REST API for Order Service")
                         .version(version)
                         .license(new License().name("Apache 2.0")))
                 .externalDocs(new ExternalDocumentation()
-                        .description("Order Service REST API - GBC -COMP3095 - 2024")
+                        .description("Order Service REST API - GBC - COMP3095 - 2024")
                         .url("https://mycompany.ca/order-service/docs"));
     }
 }
-

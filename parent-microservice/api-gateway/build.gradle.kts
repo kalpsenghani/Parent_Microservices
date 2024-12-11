@@ -22,13 +22,18 @@ extra["springCloudVersion"] = "2023.0.3"
 
 dependencies {
     implementation("org.springframework.cloud:spring-cloud-starter-gateway-mvc")
-    implementation("org.springframework.boot:spring-boot-starter-web") // Add this for Spring MVC support
-    implementation("org.projectlombok:lombok:1.18.28")
-    implementation ("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+    implementation("org.springframework.boot:spring-boot-starter-actuator:3.3.3") // Match Spring Boot version
+    implementation("org.springframework.boot:spring-boot-starter-web") // For Spring MVC support
     implementation("org.springframework.boot:spring-boot-starter-security")
-    annotationProcessor("org.projectlombok:lombok:1.18.28") // Add this for Lombok annotation processing
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
-    testImplementation("org.springdoc:springdoc-openapi-starter-webmvc-api:2.6.0")
+    implementation("org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j:3.1.3")
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+    implementation("org.projectlombok:lombok:1.18.28")
+    annotationProcessor("org.projectlombok:lombok:1.18.28")
+
+    // Add SpringDoc OpenAPI dependency
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0")
+
+    // Test dependencies
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
